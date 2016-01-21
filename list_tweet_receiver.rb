@@ -17,13 +17,35 @@ class ListTweetReceiver
     @since_id = since_id
   end
 
+  def receive
+    loop do
+      # 新着ツイートを取得
+      tweets = new_tweets
+
+      # 各ツイートを yield
+      tweets.each do |tweet|
+        yield tweet
+      end
+
+      # 流速に応じてスリープ
+      sleep -> ts do
+        # 1 秒あたりのツイート数
+        tps = ts.size / (ts.first.created_at - ts.last.created_at)
+
+        # 1 リクエストで受信できる最大ツイート数 x 0.8 に達するまでの秒数を
+        # 現在の TL の流速から計算
+        MAX_RECEIVE_SIZE * 0.8 / tps
+      end.call(tweets).tap{|t| puts "#{t}秒休みます..."}
+    end
+  end
+
   def new_tweets
     tweets = []
 
     loop do
       # 前回までに取得されたツイートの中で最新のものの tweet_id (@since_id) から，
       # 今回取得したツイートの中で最も古いものの tweet_id - 1 までを取得する．
-      new_tweets = receive_tweets(
+      new_tweets = fetch(
         @since_id, tweets.first && tweets.map(&:id).min - 1
       )
       tweets.push(*new_tweets)
@@ -35,11 +57,12 @@ class ListTweetReceiver
 
     # 新たなツイートの取得があれば， @since_id の値を更新する．
     @since_id = tweets.map(&:id).max unless tweets.empty?
+
     tweets
   end
 
-  def receive_tweets(since_id = nil, max_id = nil)
-    puts "#{since_id}から#{max_id}まで取得しようとしてみます" if $verbose
+  def fetch(since_id = nil, max_id = nil)
+    puts "#{since_id ? "#{since_id}から" : ''}#{max_id ? "#{max_id}まで" : ''}取得してみます" if $verbose
 
     # オプションを指定
     opts = { count: MAX_RECEIVE_SIZE, include_rts: 'false' }

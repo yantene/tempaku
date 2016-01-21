@@ -1,3 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'twitter', '5.14.0'
+gem 'twitter'
+gem 'sqlite3'
+gem 'pg'
+gem 'sequel'
