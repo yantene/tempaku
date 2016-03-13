@@ -14,22 +14,15 @@ $verbose = params['verbose']
 # 設定ファイルを読み込む
 config = YAML.load_file('./config.yaml')
 
-# since_id の作成
-since_id = -> tweets_dir do
-  YAML.load_file(
-    Dir.glob(File.join(Dir.glob(File.join(tweets_dir, '*')).max, '*')).max
-  ).id
-end.call(config['tweets_dir']) rescue nil
+# データベースに接続
+db = TweetDatabase.new('sqlite://twitter.db')
 
 # TweetReceiver を作成
 twitter = ListTweetReceiver.new(
   config['twitter_auth'],
   config['dest_list'],
-  since_id
+  (defined? since_id) && since_id
 )
-
-# データベースに接続
-db = TweetDatabase.new('sqlite://twitter.db')
 
 # ツイートを保存
 twitter.receive do |tweet|
