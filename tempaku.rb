@@ -15,7 +15,7 @@ $verbose = params['verbose']
 config = YAML.load_file('./config.yaml')
 
 # データベースに接続
-db = TweetDatabase.new('sqlite://twitter.db')
+db = TweetDatabase.new(config['database'])
 
 # TweetReceiver を作成
 twitter = ListTweetReceiver.new(
@@ -26,6 +26,5 @@ twitter = ListTweetReceiver.new(
 
 # ツイートを保存
 twitter.receive do |tweet|
-  
   db.add(tweet)
 end
