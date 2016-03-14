@@ -72,7 +72,11 @@ class TweetDatabase
   end
 
   def get_tweet(tweet_id)
+    
+  end
 
+  def last_tweet_id
+    @db[:tweets].max(:id)
   end
 
   private

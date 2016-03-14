@@ -21,11 +21,11 @@ db = TweetDatabase.new('sqlite://twitter.db')
 twitter = ListTweetReceiver.new(
   config['twitter_auth'],
   config['dest_list'],
-  (defined? since_id) && since_id
+  db.last_tweet_id
 )
 
 # ツイートを保存
 twitter.receive do |tweet|
-  puts "#{tweet.user.screen_name}: #{tweet.text}"
+  
   db.add(tweet)
 end
